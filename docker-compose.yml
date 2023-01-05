@@ -1,0 +1,218 @@
+version: '3'
+
+services:
+  elasticmaster:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    ports:
+      - 9200:9200
+    container_name: elasticmaster
+    deploy:
+        resources:
+            limits:
+              memory: 1G
+    environment:
+      - node.name=elasticmaster
+      - cluster.name=elasticstack
+      - cluster.initial_master_nodes=elasticmaster
+      - discovery.seed_hosts=elasticmaster,elasticdata
+      - node.roles=master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=<password>"
+      - network.host=0.0.0.0
+      - xpack.license.self_generated.type=basic
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elasticsearch/http.p12
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=required
+      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: always
+    volumes:
+      - elasticmaster:/usr/share/elasticsearch/data
+      - /home/arzansvr/elasticstack/cert:/usr/share/elasticsearch/config/cert
+
+  elasticdata01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    depends_on:
+      - elasticmaster
+    ports:
+      - 9202:9200
+    container_name: elasticdata01
+    deploy:
+        resources:
+            limits:
+              cpus: ".5"
+              memory: 1G
+    environment:
+      - node.name=elasticdata01
+      - node.roles=data
+      - cluster.name=elasticstack
+      - cluster.initial_master_nodes=elasticmaster
+      - discovery.seed_hosts=elasticmaster,elasticdata01,elasticdata02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=<password>"
+      - network.host=0.0.0.0
+      - xpack.license.self_generated.type=basic
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elasticsearch/http.p12
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=required
+      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticdata01:/usr/share/elasticsearch/data
+      - /home/arzansvr/elasticstack/cert:/usr/share/elasticsearch/config/cert
+    restart: always
+
+  elasticdata02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    depends_on:
+      - elasticmaster
+    ports:
+      - 9201:9200
+    container_name: elasticdata02
+    deploy:
+        resources:
+            limits:
+              cpus: ".5"
+              memory: 1G
+    environment:
+      - node.name=elasticdata02
+      - node.roles=data
+      - cluster.name=elasticstack
+      - cluster.initial_master_nodes=elasticmaster
+      - discovery.seed_hosts=elasticmaster,elasticdata01,elasticdata02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=<password>"
+      - network.host=0.0.0.0
+      - xpack.license.self_generated.type=basic
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elasticsearch/http.p12
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=required
+      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticdata02:/usr/share/elasticsearch/data
+      - /home/arzansvr/elasticstack/cert:/usr/share/elasticsearch/config/cert
+    restart: always
+
+  elasticingest:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    depends_on:
+      - elasticmaster
+    ports:
+      - 9203:9200
+    container_name: elasticingest
+    deploy:
+        resources:
+            limits:
+              cpus: ".5"
+              memory: 1G
+    environment:
+      - node.name=elasticingest
+      - node.roles=ingest
+      - cluster.name=elasticstack
+      - cluster.initial_master_nodes=elasticmaster
+      - discovery.seed_hosts=elasticmaster,elasticdata01,elasticdata02,elasticingest
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=<password>"
+      - network.host=0.0.0.0
+      - xpack.license.self_generated.type=basic
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elasticsearch/http.p12
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=required
+      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=/usr/share/elasticsearch/config/cert/elastic-certificates.p12
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticingest:/usr/share/elasticsearch/data
+      - /home/arzansvr/elasticstack/cert:/usr/share/elasticsearch/config/cert
+    restart: always
+
+  elasticstackkibana:
+    image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana
+    deploy:
+        resources:
+            limits:
+              cpus: "2"
+              memory: 2G
+    depends_on:
+      - elasticdata01
+      - elasticdata02
+    ports:
+      - 5601:5601
+    restart: always
+    environment:
+      - SERVER_NAME=kibana
+      - SERVER_HOST=0.0.0.0
+      - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
+      - ELASTICSEARCH_HOSTS=https://elasticmaster:9200
+      - XPACK_MONITORING_COLLECTION_ENABLED=true
+      - SERVER_SSL_ENABLED=true
+      - SERVER_SSL_KEYSTORE_PATH=/usr/share/kibana/config/cert/elastic-certificates.p12
+      - "SERVER_SSL_KEYSTORE_PASSWORD= "
+      - monitoring.ui.ccs.enabled=false
+      - SERVER_PUBLICBASEURL=<your domain for central logging>
+      - ELASTICSEARCH_USERNAME=kibanauser
+      - ELASTICSEARCH_PASSWORD=<password>
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/cert/elastic-stack-ca.p12
+    volumes:
+      - /home/arzansvr/elasticstack/cert:/usr/share/kibana/config/cert
+      - /home/arzansvr/elasticstack/kibana/config:/usr/share/kibana/config
+  
+volumes:
+  elasticmaster:
+    name: elasticmaster
+    driver_opts:
+      type: "none"
+      o: "bind,device:/mnt/disks/data/elasticstack/master"
+      device: "/mnt/disks/data/elasticstack/master"
+  elasticdata01:
+    name: elasticdata01
+    driver_opts:
+      type: "none"
+      o: "bind,device:/mnt/disks/data/elasticstack/data02"
+      device: "/mnt/disks/data/elasticstack/data01"
+  elasticdata02:
+    name: elasticdata02
+    driver_opts:
+      type: "none"
+      o: "bind,device:/mnt/disks/data/elasticstack/data02"
+      device: "/mnt/disks/data/elasticstack/data02"
+  elasticingest:
+    name: elasticingest
+    driver_opts:
+      type: "none"
+      o: "bind,device:/mnt/disks/data/elasticstack/ingest"
+      device: "/mnt/disks/data/elasticstack/ingest"
